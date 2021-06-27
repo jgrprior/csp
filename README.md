@@ -41,7 +41,10 @@ database around the following project description.
 
 ## The Database
 
-The Python scripts and SQL schema in this repository assume SQLite as the database engine. SQLite is portable and built-in to Python, making it a fine choice for development, testing and demonstration.
+The Python scripts and SQL schema in this repository assume SQLite as the
+database engine. SQLite a self-contained, full-featured database engine that is
+included in the Python standard library, making it a fine choice for
+development and testing.
 
 `schema.sql` defines the tables, fields and relations represented in this entity relationship diagram.
 
