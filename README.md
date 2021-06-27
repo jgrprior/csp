@@ -17,13 +17,25 @@ of a detailed design.
 Based on some conversation and my own imagination, I've designed a simple
 database around the following project description.
 
-    Of the available exercise and diet tracking/sharing apps, most present an abundance of data, often crammed into cluttered dashboards or spread across multiple pages, screens or tabs on a mobile app. A timeline of shares, likes and virtual races being what passes for "social fitness".
-
-    The purpose of this project is to greatly simplify the user experience of such an app by presenting personal activity trends compared with the trends of other, connected users, using the concept of an "activity room".
-
-    Not unlike the concept of a "route" or "segment" in Strava, an activity room is a virtual space where multiple users can record their progress of a defined activity. Rooms can be open, where anyone can enter, or invitation only. Unlike Strava's segments, the concept extends to any activity, like weightlifting or racket sports.
-
-    The activity attached to a room must have a single metric of achievement. Perhaps the number of steps completed, calories burnt or average pace for a session. Achievement could be a measurement of effort or performance, and could be absolute or relative to a user's activity history.
+> Of the available exercise and diet tracking/sharing apps, most present an
+> abundance of data, often crammed into cluttered dashboards or spread across
+> multiple pages, screens or tabs on a mobile app. A timeline of shares, likes
+> and virtual races being what passes for "social fitness".
+> 
+> The purpose of this project is to greatly simplify the user experience of
+> such an app by presenting personal activity trends compared with the trends
+> of other, connected users, using the concept of an "activity room".
+> 
+> Not unlike the concept of a "route" or "segment" in Strava, an activity
+> room is a virtual space where multiple users can record their progress of a
+> defined activity. Rooms can be open, where anyone can enter, or invitation
+> only. Unlike Strava's segments, the concept extends to any activity, like
+> weightlifting or racket sports.
+> 
+> The activity attached to a room must have a single metric of achievement.
+> Perhaps the number of steps completed, calories burnt or average pace for
+> a session. Achievement could be a measurement of effort or performance, and
+> could be absolute or relative to a user's activity history.
 
 ![Conceptual Model](images/er/conceptual_model.png "Conceptual Model")
 
