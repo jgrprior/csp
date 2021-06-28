@@ -42,13 +42,13 @@ database around the following project description.
 ## The Database
 
 The Python scripts and SQL schema in this repository assume SQLite as the
-database engine. SQLite a self-contained, full-featured database engine that is
+database engine. SQLite is a self-contained, full-featured database engine that is
 included in the Python standard library, making it a fine choice for
 development and testing.
 
 `schema.sql` defines the tables, fields and relations represented in this entity relationship diagram.
 
-![Logical Model](images/er/logical_model.png "Logical Model")
+![Logical Model](images/er/logical_model_v2.png "Logical Model")
 
 ## Usage
 
