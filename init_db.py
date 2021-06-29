@@ -427,6 +427,17 @@ def generate_activities(db):
     return activities
 
 
+def pop_users(ids, n):
+    invitees = []
+    for _ in range(n):
+        try:
+            invitees.append(ids.pop())
+        except IndexError:
+            break
+
+    return invitees
+
+
 def generate_buddies(db):
     """Generate some buddies representing users that have invited other users
     to join a room."""
@@ -464,18 +475,19 @@ def generate_buddies(db):
         # TODO: Make sure there's enough users.
 
         # Up to six degrees of separation from room owners.
-        for _ in range(6):
+        while queue:
             for inviter in queue.popleft():
-                invitees = [user_ids.pop() for _ in range(5)]
+                invitees = pop_users(user_ids, random.randrange(2, 5))
                 for invitee in invitees:
                     buddies.append(Buddy(room_id, inviter, invitee))
 
-                queue.append(invitees)
+                if invitees:
+                    queue.append(invitees)
 
         # Invite whoever is left.
-        inviter = queue.popleft()[0]
-        for invitee in user_ids:
-            buddies.append(Buddy(room_id, inviter, invitee))
+        # inviter = queue.popleft()[0]
+        # for invitee in user_ids:
+        #     buddies.append(Buddy(room_id, inviter, invitee))
 
     return buddies
 

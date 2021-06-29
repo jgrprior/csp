@@ -93,7 +93,7 @@ python dump_db.py project.sqlite .
 
 An attempt has been made to make the distribution of generated data seem
 natural. If we sample three random users from the database, and plot a
-histogram of their daily step counts for the pas two months, you can see each
+histogram of their daily step counts for the past two months, you can see each
 user has their own average step count following a normal (gaussian)
 distribution.
 
@@ -101,7 +101,7 @@ distribution.
 
 Similarly, performance has been skewed by gender and age.
 
-![Distribution by Gender](images/plots/dist_by_gender.png "Distribution by Gender")
+![Distribution by Gender](images/plots/dist_by_gender_v2.png "Distribution by Gender")
 ![Distribution by Age](images/plots/dist_by_ageband.png "Distribution by Age")
 
 Note that successive calls to `init_db.py` will generate different data that
@@ -113,7 +113,13 @@ The `buddy` table is effectively an adjacency list for a graph where nodes are
 users and edges represent an inviter/invitee relationship. The intention being
 that one can do interesting path finding algorithms between users.
 
-Here's a fairly useless illustration of one random `buddy` table generated with
-`init_db.py`.
+If we plot buddy relationships for a single room, you can see how the network
+grows as the room owner (shown in red) invites the first users who, in turn,
+inviter more users.
 
-![Buddies](images/plots/circular_buddies.png "Buddies")
+![Buddies](images/plots/circular_room_buddies.png "Buddies")
+
+Things become less clear when we show buddies spanning multiple rooms on the
+same plot.
+
+![Buddies](images/plots/circular_buddies_v2.png "Buddies")

@@ -140,9 +140,7 @@ def main(path_to_database, path):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Project database initialisation and mock data generation."
-    )
+    parser = argparse.ArgumentParser(description="Export project data to CSV files.")
 
     parser.add_argument(
         "db",
@@ -157,7 +155,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    path = pathlib.Path(args.path)
+    path = pathlib.Path(args.path).with_suffix(".sqlite")
 
     if not path.is_dir():
         sys.stderr.write(f"Path '{path}' does not exist.\n")
