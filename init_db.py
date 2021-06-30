@@ -12,6 +12,9 @@ import string
 import sqlite3
 import sys
 
+from dataclasses import dataclass
+from dataclasses import field
+
 from typing import NamedTuple
 from typing import Optional
 
@@ -69,6 +72,37 @@ SALT_CHARS = string.ascii_lowercase + string.ascii_uppercase + string.digits
 
 # Default number of iterations used by the password hashing algorithm.
 HASH_ITERATIONS = 10  # 260000
+
+# Choose a random mean (average) performance per user from this list.
+PERFORMANCE_MEANS = [5000, 7500, 10000, 15000]
+
+# Choose a random standard deviation per user from this list.
+PERFORMANCE_SD = [1000, 1250, 1500]
+
+# Choose a random performance trend per user/week from this list.
+PERFORMANCE_TRENDS = [0.8, 1, 1.2]
+
+# Skew average performance on gender.
+GENDER_PERFORMANCE = {
+    "male": 0.9,
+    "female": 1.2,
+    "neutral": 1,
+}
+
+# Skew average performance on age band.
+AGEBAND_PERFORMANCE = {
+    1: 1.3,
+    2: 1.1,
+    3: 0.8,
+    4: 1.1,
+    5: 1.2,
+    6: 1.0,
+    7: 0.9,
+    8: 0.8,
+    9: 0.7,
+    10: 0.6,
+    11: 0.6,
+}
 
 
 class User(NamedTuple):
@@ -323,6 +357,52 @@ def age_band_from_dob(dob):
     return band
 
 
+@dataclass
+class UserPerformance:
+    user_id: int
+    gender: str
+    dob: datetime.datetime
+    age_band: int = field(init=False)
+    mu: int = field(init=False)
+    sigma: int = field(init=False)
+    week_number: int = field(init=False, default=-1)
+    activities: dict = field(default_factory=dict, init=False)
+
+    def __post_init__(self):
+        self.age_band = age_band_from_dob(self.dob)
+        self.mu = (
+            random.choice(PERFORMANCE_MEANS) * GENDER_PERFORMANCE[self.gender]
+        ) * AGEBAND_PERFORMANCE[self.age_band]
+        self.sigma = random.choice(PERFORMANCE_SD)
+
+    def activity(self, room_id, timestamp: datetime.datetime) -> Activity:
+        """Return a new activity for this user for the given timestamp."""
+        date = timestamp.date()
+
+        if date in self.activities:
+            # We've already generated an activity for this user on this day,
+            # but in a different room. Copy the activity to the new room.
+            return self.activities[date]._replace(room_id=room_id)
+
+        # Trend up or down when we start a new week.
+        week_number = timestamp.isocalendar()[1]
+
+        if self.week_number != week_number:
+            self.week_number = week_number
+            self.mu *= random.choice(PERFORMANCE_TRENDS)
+
+        performance = int(random.gauss(self.mu, self.sigma))
+        effort = random.randint(1, 10)
+
+        return Activity(
+            room_id=room_id,
+            user_id=self.user_id,
+            timestamp=timestamp,
+            performance=performance,
+            effort=effort,
+        )
+
+
 def generate_activities(db):
     """Generate some activities representing users that have completed the
     activity defined in a room."""
@@ -335,94 +415,34 @@ def generate_activities(db):
         "WHERE departed is NULL"
     )
 
-    # Skew average performance on gender.
-    gender_performance_multiplier = {
-        "male": 0.9,
-        "female": 1.2,
-        "neutral": 1,
-    }
-
-    # Skew average performance on age band.
-    age_band_performance_multiplier = {
-        1: 1.3,
-        2: 1.1,
-        3: 0.8,
-        4: 1.1,
-        5: 1.2,
-        6: 1.0,
-        7: 0.9,
-        8: 0.8,
-        9: 0.7,
-        10: 0.6,
-        11: 0.6,
-    }
-
     # XXX: Assumes all activities are step counts for now.
     activities = []
 
-    # Choose a random mean (average) performance per user from this list.
-    performance_means = [5000, 7500, 10000, 15000]
-    # Choose a random standard deviation per user from this list.
-    performance_sd = [1000, 1250, 1500]
-
-    # Remember each user's performance mean and standard deviation.
-    user_performance = {}
-    # Reuse activities if we've already generated one for a user on any
-    # given day.
-    user_activities = {}
-
-    now = datetime.datetime.now()
+    # We're trying to simulate performance trends for each user. We'll keep
+    # track of a user's performance with a map of user_ids to UserPerformance
+    # objects.
+    users_performance = {}
 
     # XXX: There are no gaps. We're assuming all users have recorded their
     # performance every day since the creation of the room. Even if they
     # didn't join the room until later.
+    now = datetime.datetime.now()
 
     for room_id, room_timestamp, user_id, gender, dob in members:
-        max_delta = now - room_timestamp
+        if user_id not in users_performance:
+            # First time we're seeing this user. Create a new UserPerformance
+            # object with a random (skewed) performance mean and standard
+            # deviation.
+            users_performance[user_id] = UserPerformance(user_id, gender, dob)
 
-        if user_id in user_performance:
-            # We've seen this user before. Use the mean and standard
-            # deviation we generated previously for this user ID.
-            mu, sigma = user_performance[user_id]
-        else:
-            # First time we're seeing this user. Choose a new random
-            # performance mean and standard deviation.
-            mu = (
-                random.choice(performance_means) * gender_performance_multiplier[gender]
-            ) * age_band_performance_multiplier[age_band_from_dob(dob)]
-            sigma = random.choice(performance_sd)
-            user_performance[user_id] = (mu, sigma)
+        user = users_performance[user_id]
 
         # Generate an activity for the current room and user for each day
         # since the room was created.
+        max_delta = now - room_timestamp
         for day in range(max_delta.days):
-
             timestamp = random_timestamp(now - datetime.timedelta(days=day))
-            cache_key = (user_id, timestamp.date())
-
-            if cache_key in user_activities:
-                # We've already generated an activity for this user on this
-                # day, but in a different room. Copy that activity's
-                # performance into the current room.
-                activity = user_activities[cache_key]
-                activity = activity._replace(room_id=room_id)
-                user_activities[cache_key] = activity
-            else:
-                # First time we're seeing this user on this day. Sample a new
-                # performance measure using the user's generated mean and
-                # standard deviation.
-                performance = int(random.gauss(mu, sigma))
-                effort = random.randint(1, 10)
-
-                activity = user_activities[cache_key] = Activity(
-                    room_id=room_id,
-                    user_id=user_id,
-                    timestamp=timestamp,
-                    performance=performance,
-                    effort=effort,
-                )
-
-            activities.append(activity)
+            activities.append(user.activity(room_id, timestamp))
 
     return activities
 
@@ -472,9 +492,6 @@ def generate_buddies(db):
 
         random.shuffle(user_ids)
 
-        # TODO: Make sure there's enough users.
-
-        # Up to six degrees of separation from room owners.
         while queue:
             for inviter in queue.popleft():
                 invitees = pop_users(user_ids, random.randrange(2, 5))
@@ -483,11 +500,6 @@ def generate_buddies(db):
 
                 if invitees:
                     queue.append(invitees)
-
-        # Invite whoever is left.
-        # inviter = queue.popleft()[0]
-        # for invitee in user_ids:
-        #     buddies.append(Buddy(room_id, inviter, invitee))
 
     return buddies
 

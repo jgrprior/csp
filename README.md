@@ -107,6 +107,13 @@ Similarly, performance has been skewed by gender and age.
 Note that successive calls to `init_db.py` will generate different data that
 follows the distributions illustrated above.
 
+### Performance Trends
+
+Each user's performance can trend up or down over time. This plot shows a
+single, random user's performance declining over a few months.
+
+![Trend Over Time](images/plots/user_trend.png "Trend Over Time")
+
 ### Buddies
 
 The `buddy` table is effectively an adjacency list for a graph where nodes are
