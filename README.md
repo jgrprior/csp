@@ -122,7 +122,7 @@ that one can do interesting path finding algorithms between users.
 
 If we plot buddy relationships for a single room, you can see how the network
 grows as the room owner (shown in red) invites the first users who, in turn,
-inviter more users.
+invite more users.
 
 ![Buddies](images/plots/circular_room_buddies.png "Buddies")
 

@@ -18,6 +18,8 @@ from dataclasses import field
 from typing import NamedTuple
 from typing import Optional
 
+__version__ = "0.1.3"
+
 # A list of colours that are used to generate usernames.
 COLOURS = [
     "Aquamarine",
@@ -389,9 +391,17 @@ class UserPerformance:
 
         if self.week_number != week_number:
             self.week_number = week_number
-            self.mu *= random.choice(PERFORMANCE_TRENDS)
+            if self.mu < 3000:
+                # Don't let mean performance get too low.
+                self.mu *= max(PERFORMANCE_TRENDS)
+            else:
+                self.mu *= random.choice(PERFORMANCE_TRENDS)
 
         performance = int(random.gauss(self.mu, self.sigma))
+        while performance < 1:
+            # Don't want negative steps.
+            performance = int(random.gauss(self.mu, self.sigma))
+
         effort = random.randint(1, 10)
 
         return Activity(
@@ -549,6 +559,12 @@ if __name__ == "__main__":
             "The number of iterations used by the password "
             f"hahsing algorithm. Defaults to {HASH_ITERATIONS}."
         ),
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s v{__version__}",
     )
 
     parser.add_argument(
